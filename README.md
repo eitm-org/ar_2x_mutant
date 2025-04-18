@@ -1,39 +1,13 @@
 # ar_2x_mutant
 
-Welcome to ProjectTemplate!
+# overview
+here is the analysis for the double mutant data
+it's based off of [luciferase_drc/double_mutant_rmd/2022-06-16_mck-cmpd_analysis.Rmd](https://github.com/eitm-org/luciferase_DRC/blob/master/double_mutant_rmd/2022-06-16_mck-cmpd_analysis.Rmd)
+analyzes all double mutant data from the analysis request forms (also called drc-formatted excel files.... plater-formatted excel files) stored in [EITM AR SPRC 2022 Docs/Dossiers](https://www.dropbox.com/scl/fo/sfi0emihuw9hrrpgga37m/ACcWHePD-ryJIKUMcb1QLho?rlkey=jteaorvj3b929yzeupcqfcdzt&dl=0)
+^ you'll need access to that dropbox folder if you want to run this. you can ask abby (acoleman@emila.org) for that.
 
-This file introduces you to ProjectTemplate, but you should eventually replace
-the contents of this file with an introduction to your project. People who
-work with your data in the future will thank you for it, including your future
-self.
-
-ProjectTemplate is an R package that helps you organize your statistical
-analysis projects. Since you're reading this file, we'll assume that you've
-already called `create.project()` to set up this project and all of its
-contents.
-
-To load your new project, you'll first need to `setwd()` into the directory
-where this README file is located. Then you need to run the following two
-lines of R code:
-
-	library('ProjectTemplate')
-	load.project()
-
-After you enter the second line of code, you'll see a series of automated
-messages as ProjectTemplate goes about doing its work. This work involves:
-* Reading in the global configuration file contained in `config`.
-* Loading any R packages you listed in the configuration file.
-* Reading in any datasets stored in `data` or `cache`.
-* Preprocessing your data using the files in the `munge` directory.
-
-Once that's done, you can execute any code you'd like. For every analysis
-you create, we'd recommend putting a separate file in the `src` directory.
-If the files start with the two lines mentioned above:
-
-	library('ProjectTemplate')
-	load.project()
-
-You'll have access to all of your data, already fully preprocessed, and
-all of the libraries you want to use.
-
-For more details about ProjectTemplate, see http://projecttemplate.net
+# todo's
+add unit tests for these functions:
+* can_it_plate
+* xl2plater
+* make_concs_num

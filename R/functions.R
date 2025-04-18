@@ -8,6 +8,7 @@ require(here)
 #^this is a very cool package that helps with filepaths
 #but it's only an R thing, other languages u have to setwd()
 #here's some info about the here library it is cool: https://here.r-lib.org/
+require(readxl)
 
 #' Title
 #'
@@ -48,3 +49,94 @@ dropbox_downloader <- function(dropbox_link) {
   system(paste("unzip", destination_dropbox, "-d", local_path))
   return(local_path)
 }
+
+#' Title
+#'
+#' @param csv filepath to a csv that contains data which may or may not be in plater format
+#'
+#' @returns bool-- can this csv be read with plater::read_plate() ?
+#' @export
+#'
+#' @examples
+#' #filter for only sheets that can be reformatted with the plater function
+#' df["plated"] <- unlist(lapply(df$tempname, can_it_plate))
+#' df <- df %>%
+#'  filter(plated == TRUE)
+can_it_plate <- function(csv) {
+  tryCatch({
+    suppressWarnings(read_plate(csv))
+    return(TRUE)
+  }, error = function(cond) {
+    return(FALSE)
+  }, warning = function(cond) {
+    return(FALSE)
+  })
+}
+
+#' Title
+#'
+#' @param df0 a dataframe that may contain columns with the string "concentration" in their names
+#'
+#' @returns a dataframe with these columns converted to numeric data type
+#' @export
+#'
+#' @examples
+#' plates <- map(df$tempname, read_plate) %>%
+#' map(clean_names) %>%
+#' #make sure all the concentration columns are numeric
+#'  map(make_concs_num)
+make_concs_num <- function(df0) {
+  numcols <- names(df0)[grepl("concentration", names(df0))]
+  #remove any characters from the concentration columns
+  df0[numcols] <- sapply(df0[numcols], function(x) as.numeric(str_remove_all(x, "[:alpha:]")))
+  return(df0)
+}
+
+#' Title
+#'
+#' @param filepath filepath to a plater-formatted excel file
+#'
+#' @returns a column-formatted dataframe of all data contained in the excel file (all sheets)
+#' @export
+#'
+#' @examples
+#' df <- data.frame(filepath = files) %>%
+#' mutate(filename = basename(filepath)) %>%
+#'   distinct(filename, .keep_all = TRUE) %>%
+#'    mutate(data = map(filepath, xl2plater))
+xl2plater <- function(filepath) {
+  print(filepath)
+  #make temporary directory for csvs
+  temp_filepath <- here("data", "temp")
+  if (!dir.exists(temp_filepath)) {
+    if (!dir.exists(here("data"))) {
+      dir.create(here("data"))
+    }
+    dir.create(temp_filepath)
+  }
+  #read in all data sheets
+  df <- data.frame(sheets = excel_sheets(filepath)) %>%
+    mutate(
+      data = map(sheets, function(x)
+        read_excel(filepath, sheet = x, range = cell_cols("A:M"))),
+      tempname = paste0(here(temp_filepath, sheets), ".csv")
+    )
+  #write to temporary .csv files
+  map2(df$data, df$tempname, function(x, y)
+    write_csv(x, y))
+  #filter for only sheets that can be reformatted with the plater function
+  df["plated"] <- unlist(lapply(df$tempname, can_it_plate))
+  df <- df %>%
+    filter(plated == TRUE)
+  #finally, make a dataframe of all plates
+  plates <- map(df$tempname, read_plate) %>%
+    map(clean_names) %>%
+    #make sure all the concentration columns are numeric
+    map(make_concs_num)
+  plates_df <- bind_rows(plates)
+  #delete temporary csv directory
+  system(paste("rm -r", temp_filepath))
+  return(plates_df)
+}
+
+
